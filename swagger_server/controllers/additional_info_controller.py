@@ -1,5 +1,5 @@
 import connexion
-import six
+import requests
 
 from swagger_server.models.inline_response200 import InlineResponse200  # noqa: E501
 from swagger_server.models.inline_response2001 import InlineResponse2001  # noqa: E501
@@ -13,6 +13,8 @@ from swagger_server.models.users_user_id_body import UsersUserIdBody  # noqa: E5
 from swagger_server.models.users_user_id_body1 import UsersUserIdBody1  # noqa: E501
 from swagger_server import util
 
+BASE_URL_USER_SERVER = "http://localhost:8082/v1"
+BASE_URL_CONTENT_API = "http://localhost:8081/v1"
 
 def add_numeric_review_for_content(body, content_id, user_id):  # noqa: E501
     """Add a numeric review for content
@@ -58,7 +60,24 @@ def get_content_languages(content_id):  # noqa: E501
 
     :rtype: InlineResponse2005
     """
-    return 'do some magic!'
+    # Llama al endpoint que obtiene todos los detalles del contenido
+    response = requests.get(f"{BASE_URL_CONTENT_API}/contents/{content_id}")
+
+    # Verifica si la respuesta es exitosa (código 200)
+    if response.status_code == 200:
+        try:
+            # Extrae la respuesta JSON completa
+            content_data = response.json()
+            # Extrae solo la parte de "languages" del contenido
+            languages = content_data.get("languages", [])
+            # Devuelve los idiomas en la estructura esperada por InlineResponse2005
+            return InlineResponse2005.from_dict({"languages": languages}), response.status_code
+        except ValueError:
+            # Maneja el caso donde la respuesta no es JSON válido
+            return {"error": "Respuesta no es JSON válida"}, 500
+    else:
+        # Si el estado no es 200, devuelve un mensaje de error con el estado de respuesta
+        return {"error": f"Error en el microservicio de contenido: {response.status_code}"}, response.status_code
 
 
 def get_content_views(content_id):  # noqa: E501
@@ -127,6 +146,15 @@ def get_recommendations_for_user(user_id, profile_id):  # noqa: E501
 
     :rtype: InlineResponse2006
     """
+    # Paso 1: Obtener los IDs de los contenidos favoritos del perfil
+
+    # Extraer los IDs de contenidos favoritos
+
+    # Paso 2: Obtener los géneros de los contenidos favoritos
+
+    # Paso 3: Buscar todos los contenidos que coincidan con los géneros favoritos
+
+    # Paso 4: Devolver las recomendaciones en el formato esperado
     return 'do some magic!'
 
 
