@@ -147,15 +147,40 @@ def get_recommendations_for_user(user_id, profile_id):  # noqa: E501
     :rtype: InlineResponse2006
     """
     # Paso 1: Obtener los IDs de los contenidos favoritos del perfil
+    response = requests.get(f"{BASE_URL_USER_SERVER}/users/{user_id}/profiles/{profile_id}/lists/favorites")
+    if response.status_code != 200:
+        return {"error": "No se pudieron obtener los favoritos"}, response.status_code
 
     # Extraer los IDs de contenidos favoritos
+    favorite_content_ids = response.json()
 
     # Paso 2: Obtener los géneros de los contenidos favoritos
+    favorite_genres = set()
+    for content_id in favorite_content_ids:
+        content_response = requests.get(f"{BASE_URL_CONTENT_API}/contents/{content_id}")
+        if content_response.status_code == 200:
+            content_data = content_response.json()
+            genre = content_data.get("genre")
+            if genre:
+                favorite_genres.add(genre)
 
     # Paso 3: Buscar todos los contenidos que coincidan con los géneros favoritos
+    recommendations = []
+    all_contents_response = requests.get(f"{BASE_URL_CONTENT_API}/contents")
+    if all_contents_response.status_code != 200:
+        return {"error": "No se pudieron obtener los contenidos"}, all_contents_response.status_code
+
+    all_contents = all_contents_response.json()
+    for content in all_contents:
+        if content.get("genre") in favorite_genres:
+            # Agrega solo contentId y title a la lista de recomendaciones
+            recommendations.append({
+                "contentId": content["id"],
+                "title": content["title"]
+            })
 
     # Paso 4: Devolver las recomendaciones en el formato esperado
-    return 'do some magic!'
+    return InlineResponse2006.from_dict({"recommendations": recommendations}), 200
 
 
 def update_specific_review_for_content_by_user(body, content_id, user_id):  # noqa: E501
