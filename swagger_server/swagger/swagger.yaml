@@ -373,6 +373,177 @@ paths:
                 $ref: '#/components/schemas/inline_response_200_6'
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
 
+  /users/{user_id}/profiles/{profile_id}/continue-watching/{content_id}:
+    get:
+      tags:
+        - additional-info
+      summary: Get last watched minute for content
+      description: Retrieve the last watched minute for a specific content by a user and profile.
+      operationId: get_continue_watching
+      parameters:
+        - name: user_id
+          in: path
+          description: The ID of the user
+          required: true
+          schema:
+            type: integer
+        - name: profile_id
+          in: path
+          description: The ID of the profile
+          required: true
+          schema:
+            type: integer
+        - name: content_id
+          in: path
+          description: The ID of the content
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Last watched minute for the content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  last_watched_minute:
+                    type: integer
+                    description: Last watched minute
+                example:
+                  last_watched_minute: 35
+        "404":
+          description: No record found
+        "400":
+          description: Error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
+    post:
+      tags:
+        - additional-info
+      summary: Add continue watching entry
+      description: Add a new entry for a user's last watched minute for a specific content.
+      operationId: add_continue_watching
+      parameters:
+        - name: user_id
+          in: path
+          description: The ID of the user
+          required: true
+          schema:
+            type: integer
+        - name: profile_id
+          in: path
+          description: The ID of the profile
+          required: true
+          schema:
+            type: integer
+        - name: content_id
+          in: path
+          description: The ID of the content
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Data for the continue watching entry
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                last_watched_minute:
+                  type: integer
+                  description: The minute where the user stopped watching
+              required:
+                - last_watched_minute
+      responses:
+        "201":
+          description: Continue watching entry created successfully
+        "400":
+          description: Invalid input or error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
+    put:
+      tags:
+        - additional-info
+      summary: Update continue watching entry
+      description: Update the last watched minute for a user's content.
+      operationId: update_continue_watching
+      parameters:
+        - name: user_id
+          in: path
+          description: The ID of the user
+          required: true
+          schema:
+            type: integer
+        - name: profile_id
+          in: path
+          description: The ID of the profile
+          required: true
+          schema:
+            type: integer
+        - name: content_id
+          in: path
+          description: The ID of the content
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Updated continue watching data
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_last_watched_minute:
+                  type: integer
+                  description: The new minute where the user stopped watching
+              required:
+                - new_last_watched_minute
+      responses:
+        "200":
+          description: Continue watching entry updated successfully
+        "404":
+          description: No record found to update
+        "400":
+          description: Invalid input or error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
+    delete:
+      tags:
+        - additional-info
+      summary: Delete continue watching entry
+      description: Delete a continue watching entry for a specific content by a user and profile.
+      operationId: delete_continue_watching
+      parameters:
+        - name: user_id
+          in: path
+          description: The ID of the user
+          required: true
+          schema:
+            type: integer
+        - name: profile_id
+          in: path
+          description: The ID of the profile
+          required: true
+          schema:
+            type: integer
+        - name: content_id
+          in: path
+          description: The ID of the content
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Continue watching entry deleted successfully
+        "404":
+          description: No record found to delete
+        "400":
+          description: Error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
 components:
   schemas:
     inline_response_200:
