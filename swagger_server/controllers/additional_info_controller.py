@@ -3,6 +3,7 @@ import requests
 
 from swagger_server.services.view_service import *
 from swagger_server.services.continue_watching_service import *
+from swagger_server.services.review_service import *
 from swagger_server.models.inline_response200 import InlineResponse200  # noqa: E501
 from swagger_server.models.inline_response2001 import InlineResponse2001  # noqa: E501
 from swagger_server.models.inline_response2002 import InlineResponse2002  # noqa: E501
@@ -18,7 +19,7 @@ from swagger_server import util
 BASE_URL_USER_SERVER = "http://localhost:8082/v1"
 BASE_URL_CONTENT_API = "http://localhost:8081/v1"
 
-def add_numeric_review_for_content(body, content_id, user_id):  # noqa: E501
+def add_numeric_review_for_content(content_id, user_id, profile_id, body):  # noqa: E501
     """Add a numeric review for content
 
     Submit a numeric review for a specific content by a user # noqa: E501
@@ -29,12 +30,23 @@ def add_numeric_review_for_content(body, content_id, user_id):  # noqa: E501
     :type content_id: int
     :param user_id: The ID of the user submitting the review
     :type user_id: int
+    :param profile_id: The ID of the profile submitting the review
+    :type profile_id: int
 
     :rtype: InlineResponse201
     """
-    if connexion.request.is_json:
-        body = UsersUserIdBody1.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    rating = body.get('rating')
+
+    # Validar el rango de la calificación
+    if not (1 <= rating <= 5):
+        return {'error': 'Rating must be between 1 and 5'}, 400
+
+    # Llama a la función de base de datos para agregar la reseña
+    result = insert_review(content_id, user_id, profile_id, rating)
+    if result['status'] == 'success':
+        return {'message': 'Review added successfully'}, 201
+    else:
+        return {'error': result['error']}, 400
 
 
 def delete_specific_review_for_content_by_user(content_id, user_id):  # noqa: E501
@@ -50,36 +62,6 @@ def delete_specific_review_for_content_by_user(content_id, user_id):  # noqa: E5
     :rtype: None
     """
     return 'do some magic!'
-
-
-def get_content_languages(content_id):  # noqa: E501
-    """Get available languages for content
-
-    Retrieve a list of available languages for a specific content # noqa: E501
-
-    :param content_id: The ID of the content to retrieve languages for
-    :type content_id: int
-
-    :rtype: InlineResponse2005
-    """
-    # Llama al endpoint que obtiene todos los detalles del contenido
-    response = requests.get(f"{BASE_URL_CONTENT_API}/contents/{content_id}")
-
-    # Verifica si la respuesta es exitosa (código 200)
-    if response.status_code == 200:
-        try:
-            # Extrae la respuesta JSON completa
-            content_data = response.json()
-            # Extrae solo la parte de "languages" del contenido
-            languages = content_data.get("languages", [])
-            # Devuelve los idiomas en la estructura esperada por InlineResponse2005
-            return InlineResponse2005.from_dict({"languages": languages}), response.status_code
-        except ValueError:
-            # Maneja el caso donde la respuesta no es JSON válido
-            return {"error": "Respuesta no es JSON válida"}, 500
-    else:
-        # Si el estado no es 200, devuelve un mensaje de error con el estado de respuesta
-        return {"error": f"Error en el microservicio de contenido: {response.status_code}"}, response.status_code
 
 
 def get_numeric_review_for_content_by_user(content_id, user_id):  # noqa: E501
@@ -121,6 +103,55 @@ def get_numeric_reviews_for_content(content_id):  # noqa: E501
     :rtype: InlineResponse2001
     """
     return 'do some magic!'
+
+
+def update_specific_review_for_content_by_user(body, content_id, user_id):  # noqa: E501
+    """Update a specific review for content by user
+
+    Update an existing numeric review for a given content and user # noqa: E501
+
+    :param body: The updated review data
+    :type body: dict | bytes
+    :param content_id: The ID of the content to update the review for
+    :type content_id: int
+    :param user_id: The ID of the user whose review is being updated
+    :type user_id: int
+
+    :rtype: InlineResponse2003
+    """
+    if connexion.request.is_json:
+        body = UsersUserIdBody.from_dict(connexion.request.get_json())  # noqa: E501
+    return 'do some magic!'
+
+
+def get_content_languages(content_id):  # noqa: E501
+    """Get available languages for content
+
+    Retrieve a list of available languages for a specific content # noqa: E501
+
+    :param content_id: The ID of the content to retrieve languages for
+    :type content_id: int
+
+    :rtype: InlineResponse2005
+    """
+    # Llama al endpoint que obtiene todos los detalles del contenido
+    response = requests.get(f"{BASE_URL_CONTENT_API}/contents/{content_id}")
+
+    # Verifica si la respuesta es exitosa (código 200)
+    if response.status_code == 200:
+        try:
+            # Extrae la respuesta JSON completa
+            content_data = response.json()
+            # Extrae solo la parte de "languages" del contenido
+            languages = content_data.get("languages", [])
+            # Devuelve los idiomas en la estructura esperada por InlineResponse2005
+            return InlineResponse2005.from_dict({"languages": languages}), response.status_code
+        except ValueError:
+            # Maneja el caso donde la respuesta no es JSON válido
+            return {"error": "Respuesta no es JSON válida"}, 500
+    else:
+        # Si el estado no es 200, devuelve un mensaje de error con el estado de respuesta
+        return {"error": f"Error en el microservicio de contenido: {response.status_code}"}, response.status_code
 
 
 def get_recommendations_for_user(user_id, profile_id):  # noqa: E501
@@ -170,25 +201,6 @@ def get_recommendations_for_user(user_id, profile_id):  # noqa: E501
 
     # Paso 4: Devolver las recomendaciones en el formato esperado
     return InlineResponse2006.from_dict({"recommendations": recommendations}), 200
-
-
-def update_specific_review_for_content_by_user(body, content_id, user_id):  # noqa: E501
-    """Update a specific review for content by user
-
-    Update an existing numeric review for a given content and user # noqa: E501
-
-    :param body: The updated review data
-    :type body: dict | bytes
-    :param content_id: The ID of the content to update the review for
-    :type content_id: int
-    :param user_id: The ID of the user whose review is being updated
-    :type user_id: int
-
-    :rtype: InlineResponse2003
-    """
-    if connexion.request.is_json:
-        body = UsersUserIdBody.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
 
 
 def get_content_views(content_id):  # noqa: E501
