@@ -2,6 +2,7 @@ import connexion
 import requests
 
 from swagger_server.services.view_service import *
+from swagger_server.services.continue_watching_service import *
 from swagger_server.models.inline_response200 import InlineResponse200  # noqa: E501
 from swagger_server.models.inline_response2001 import InlineResponse2001  # noqa: E501
 from swagger_server.models.inline_response2002 import InlineResponse2002  # noqa: E501
@@ -266,6 +267,54 @@ def delete_content_view(content_id):
     result = delete_view(int(content_id))
     if result['status'] == 'success' and result['rowcount'] > 0:
         return {'message': 'View deleted successfully'}, 200
+    elif result['status'] == 'success':
+        return {'message': 'No record found to delete'}, 404
+    else:
+        return {'error': result['error']}, 400
+
+def get_continue_watching(user_id, profile_id, content_id):
+    """
+    Recupera el último minuto visto de un contenido específico.
+    """
+    result = fetch_continue_watching(user_id, profile_id, content_id)
+    if result['status'] == 'success' and result['data']:
+        return {'last_watched_minute': result['data'][0]['last_watched_minute']}, 200
+    elif result['status'] == 'success':
+        return {'message': 'No record found'}, 404
+    else:
+        return {'error': result['error']}, 400
+
+def add_continue_watching(user_id, profile_id, content_id, body):
+    """
+    Agrega una nueva entrada de 'continuar viendo' para un contenido específico.
+    """
+    last_watched_minute = body.get('last_watched_minute')
+    result = insert_continue_watching(user_id, profile_id, content_id, last_watched_minute)
+    if result['status'] == 'success':
+        return {'message': 'Continue watching entry created successfully'}, 201
+    else:
+        return {'error': result['error']}, 400
+
+def update_continue_watching(user_id, profile_id, content_id, body):
+    """
+    Actualiza el último minuto visto de un contenido específico.
+    """
+    new_last_watched_minute = body.get('new_last_watched_minute')
+    result = update_continue_entry(user_id, profile_id, content_id, new_last_watched_minute)
+    if result['status'] == 'success' and result['rowcount'] > 0:
+        return {'message': 'Continue watching entry updated successfully'}, 200
+    elif result['status'] == 'success':
+        return {'message': 'No record found to update'}, 404
+    else:
+        return {'error': result['error']}, 400
+
+def delete_continue_watching(user_id, profile_id, content_id):
+    """
+    Elimina una entrada de 'continuar viendo' para un contenido específico.
+    """
+    result = delete_continue_entry(user_id, profile_id, content_id)
+    if result['status'] == 'success' and result['rowcount'] > 0:
+        return {'message': 'Continue watching entry deleted successfully'}, 200
     elif result['status'] == 'success':
         return {'message': 'No record found to delete'}, 404
     else:
