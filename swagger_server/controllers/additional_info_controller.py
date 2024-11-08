@@ -1,6 +1,7 @@
 import connexion
 import six
 
+from swagger_server.services.view_service import *
 from swagger_server.models.inline_response200 import InlineResponse200  # noqa: E501
 from swagger_server.models.inline_response2001 import InlineResponse2001  # noqa: E501
 from swagger_server.models.inline_response2002 import InlineResponse2002  # noqa: E501
@@ -57,19 +58,6 @@ def get_content_languages(content_id):  # noqa: E501
     :type content_id: int
 
     :rtype: InlineResponse2005
-    """
-    return 'do some magic!'
-
-
-def get_content_views(content_id):  # noqa: E501
-    """Get number of views for content
-
-    Retrieve the number of views for a specific content # noqa: E501
-
-    :param content_id: The ID of the content to retrieve views for
-    :type content_id: int
-
-    :rtype: InlineResponse200
     """
     return 'do some magic!'
 
@@ -147,3 +135,85 @@ def update_specific_review_for_content_by_user(body, content_id, user_id):  # no
     if connexion.request.is_json:
         body = UsersUserIdBody.from_dict(connexion.request.get_json())  # noqa: E501
     return 'do some magic!'
+
+
+def get_content_views(content_id):  # noqa: E501
+    """Get number of views for content
+
+    Retrieve the number of views for a specific content # noqa: E501
+
+    :param content_id: The ID of the content to retrieve views for
+    :type content_id: int
+
+    :rtype: InlineResponse200
+    """
+    result = fetch_view_count(content_id)
+    if result['status'] == 'success':
+        views = result['data'][0]['view_count'] if result['data'] else 0
+        return {'views': views}, 200
+    else:
+        return {'error': result['error']}, 400
+
+
+def add_content_view(content_id, body):
+    """
+    Maneja la solicitud POST para agregar una nueva entrada de 'views'.
+
+    Agrega una nueva entrada de 'views' asociada a un contenido específico.
+
+    :param content_id: El ID del contenido para el cual agregar la entrada de 'views'.
+    :type content_id: int
+    :param body: El cuerpo de la solicitud que contiene los datos necesarios para agregar la entrada de 'views'.
+    :type body: dict
+    :rtype: dict, int
+    :return: Devuelve un mensaje indicando si la operación fue exitosa o si ocurrió un error.
+    """
+    view_count = body.get('view_count')
+
+    result = add_view(content_id, view_count)
+    if result['status'] == 'success':
+        return {'message': 'View added successfully'}, 201
+    else:
+        return {'error': result['error']}, 400
+
+
+def update_content_view(content_id, body):
+    """
+    Maneja la solicitud PUT para actualizar la cantidad de 'views'.
+
+    Actualiza la cantidad de 'views' asociada a un contenido específico.
+
+    :param content_id: El ID del contenido para actualizar la cantidad de 'views'.
+    :type content_id: int
+    :param body: El cuerpo de la solicitud que contiene la nueva cantidad de 'views'.
+    :type body: dict
+    :rtype: dict, int
+    :return: Devuelve un mensaje indicando si la operación de actualización fue exitosa, si no se encontró ningún registro para actualizar, o si ocurrió un error.
+    """
+    new_view_count = body.get('new_view_count')
+    result = update_view(content_id, new_view_count)
+    if result['status'] == 'success' and result['rowcount'] > 0:
+        return {'message': 'View count updated successfully'}, 200
+    elif result['status'] == 'success':
+        return {'message': 'No record found to update'}, 404
+    else:
+        return {'error': result['error']}, 400
+
+def delete_content_view(content_id):
+    """
+    Maneja la solicitud DELETE para eliminar una entrada de 'views'.
+
+    Elimina una entrada de 'views' asociada a un contenido específico.
+
+    :param content_id: El ID del contenido para el cual eliminar la entrada de 'views'.
+    :type content_id: int
+    :rtype: dict, int
+    :return: Devuelve un mensaje indicando si la operación de eliminación fue exitosa, si no se encontró ningún registro para eliminar, o si ocurrió un error.
+    """
+    result = delete_view(int(content_id))
+    if result['status'] == 'success' and result['rowcount'] > 0:
+        return {'message': 'View deleted successfully'}, 200
+    elif result['status'] == 'success':
+        return {'message': 'No record found to delete'}, 404
+    else:
+        return {'error': result['error']}, 400
