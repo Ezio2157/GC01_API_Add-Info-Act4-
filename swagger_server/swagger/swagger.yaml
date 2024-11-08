@@ -154,6 +154,56 @@ paths:
                 $ref: '#/components/schemas/inline_response_200_1'
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
 
+
+
+  /contents/{contentId}/reviews/users/{userId}/profiles/{profileId}:
+    post:
+      tags:
+      - additional-info
+      summary: Add a numeric review for content by user and profile
+      description: Submit a numeric review for a specific content by a user and profile
+      operationId: add_numeric_review_for_content
+      parameters:
+      - name: contentId
+        in: path
+        description: The ID of the content to review
+        required: true
+        schema:
+          type: integer
+      - name: userId
+        in: path
+        description: The ID of the user submitting the review
+        required: true
+        schema:
+          type: integer
+      - name: profileId
+        in: path
+        description: The ID of the profile submitting the review
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        description: The review data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/users_userId_body_1'
+        required: true
+      responses:
+        "201":
+          description: Review added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_201'
+        "400":
+          description: Invalid input or error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
+
+
+
+
   /contents/{contentId}/reviews/users/{userId}:
     get:
       tags:
@@ -223,44 +273,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/inline_response_200_3'
-      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
-    post:
-      tags:
-      - additional-info
-      summary: Add a numeric review for content
-      description: Submit a numeric review for a specific content by a user
-      operationId: add_numeric_review_for_content
-      parameters:
-      - name: contentId
-        in: path
-        description: The ID of the content to review
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-      - name: userId
-        in: path
-        description: The ID of the user submitting the review
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-      requestBody:
-        description: The review data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/users_userId_body_1'
-        required: true
-      responses:
-        "201":
-          description: Review added successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/inline_response_201'
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
     delete:
       tags:
