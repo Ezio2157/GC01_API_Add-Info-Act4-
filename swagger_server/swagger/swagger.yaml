@@ -1,16 +1,16 @@
 openapi: 3.0.3
 info:
   title: Additional Info management API
-  description: "API for additional functions related to content (movies, series, and\
-    \ episodes) on a streaming platform, including CRUD operations for reviews."
+  description: "API for additional functions related to content (movies, series, and episodes) on a streaming platform, including CRUD operations for reviews."
   version: 1.0.0
 servers:
 - url: https://myapi.com/v1
 tags:
 - name: additional-info
   description: "Additional operations related to content, such as reviews and recommendations"
+
 paths:
-  /contents/{contentId}/views:
+  /contents/{content_id}/views:
     get:
       tags:
       - additional-info
@@ -18,7 +18,7 @@ paths:
       description: Retrieve the number of views for a specific content
       operationId: get_content_views
       parameters:
-      - name: contentId
+      - name: content_id
         in: path
         description: The ID of the content to retrieve views for
         required: true
@@ -34,13 +34,107 @@ paths:
               schema:
                 $ref: '#/components/schemas/inline_response_200'
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
+    post:
+      tags:
+        - additional-info
+      summary: Add a view entry for content
+      description: Add a new view entry for a specific content.
+      operationId: add_content_view
+      parameters:
+        - name: content_id
+          in: path
+          description: The ID of the content to add the view entry for
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Data for the new view entry
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                view_count:
+                  type: integer
+                  description: The number of views to add
+              required:
+                - view_count
+      responses:
+        "201":
+          description: View entry created successfully
+        "400":
+          description: Invalid input or error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
+    put:
+      tags:
+      - additional-info
+      summary: Update view count for specific content and user
+      description: Update the view count for a specific content by a user.
+      operationId: update_content_view
+      parameters:
+      - name: content_id
+        in: path
+        description: The ID of the content to update the view count for
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      requestBody:
+        description: Updated view count
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_view_count:
+                  type: integer
+                  description: The new view count value
+              required:
+                - new_view_count
+      responses:
+        "200":
+          description: View count updated successfully
+        "404":
+          description: No record found to update
+        "400":
+          description: Invalid input or error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
+    delete:
+      tags:
+      - additional-info
+      summary: Delete view entry for content by user
+      description: Delete a view entry for a specific content and user.
+      operationId: delete_content_view
+      parameters:
+      - name: content_id
+        in: path
+        description: The ID of the content to delete the views
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: View entry deleted successfully
+        "404":
+          description: No record found to delete
+        "400":
+          description: Error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
   /contents/{contentId}/reviews:
     get:
       tags:
       - additional-info
       summary: Get numeric reviews for specific content
-      description: Retrieve all numeric reviews (user ID and rating) made for a specific
-        content
+      description: Retrieve all numeric reviews (user ID and rating) made for a specific content
       operationId: get_numeric_reviews_for_content
       parameters:
       - name: contentId
@@ -59,6 +153,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/inline_response_200_1'
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
   /contents/{contentId}/reviews/users/{userId}:
     get:
       tags:
@@ -194,6 +289,7 @@ paths:
         "204":
           description: Review deleted successfully
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
   /users/{userId}/reviews:
     get:
       tags:
@@ -218,6 +314,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/inline_response_200_4'
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
   /contents/{contentId}/languages:
     get:
       tags:
@@ -242,6 +339,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/inline_response_200_5'
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
   /users/{userId}/profiles/{profileId}/recommendations:
     get:
       tags:
@@ -274,6 +372,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/inline_response_200_6'
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
 components:
   schemas:
     inline_response_200:
@@ -421,4 +520,3 @@ components:
           title: title
         - contentId: 0
           title: title
-

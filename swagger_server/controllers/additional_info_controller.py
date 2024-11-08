@@ -1,6 +1,7 @@
 import connexion
-import six
+import requests
 
+from swagger_server.services.view_service import *
 from swagger_server.models.inline_response200 import InlineResponse200  # noqa: E501
 from swagger_server.models.inline_response2001 import InlineResponse2001  # noqa: E501
 from swagger_server.models.inline_response2002 import InlineResponse2002  # noqa: E501
@@ -13,6 +14,8 @@ from swagger_server.models.users_user_id_body import UsersUserIdBody  # noqa: E5
 from swagger_server.models.users_user_id_body1 import UsersUserIdBody1  # noqa: E501
 from swagger_server import util
 
+BASE_URL_USER_SERVER = "http://localhost:8082/v1"
+BASE_URL_CONTENT_API = "http://localhost:8081/v1"
 
 def add_numeric_review_for_content(body, content_id, user_id):  # noqa: E501
     """Add a numeric review for content
@@ -58,20 +61,24 @@ def get_content_languages(content_id):  # noqa: E501
 
     :rtype: InlineResponse2005
     """
-    return 'do some magic!'
+    # Llama al endpoint que obtiene todos los detalles del contenido
+    response = requests.get(f"{BASE_URL_CONTENT_API}/contents/{content_id}")
 
-
-def get_content_views(content_id):  # noqa: E501
-    """Get number of views for content
-
-    Retrieve the number of views for a specific content # noqa: E501
-
-    :param content_id: The ID of the content to retrieve views for
-    :type content_id: int
-
-    :rtype: InlineResponse200
-    """
-    return 'do some magic!'
+    # Verifica si la respuesta es exitosa (código 200)
+    if response.status_code == 200:
+        try:
+            # Extrae la respuesta JSON completa
+            content_data = response.json()
+            # Extrae solo la parte de "languages" del contenido
+            languages = content_data.get("languages", [])
+            # Devuelve los idiomas en la estructura esperada por InlineResponse2005
+            return InlineResponse2005.from_dict({"languages": languages}), response.status_code
+        except ValueError:
+            # Maneja el caso donde la respuesta no es JSON válido
+            return {"error": "Respuesta no es JSON válida"}, 500
+    else:
+        # Si el estado no es 200, devuelve un mensaje de error con el estado de respuesta
+        return {"error": f"Error en el microservicio de contenido: {response.status_code}"}, response.status_code
 
 
 def get_numeric_review_for_content_by_user(content_id, user_id):  # noqa: E501
@@ -127,7 +134,41 @@ def get_recommendations_for_user(user_id, profile_id):  # noqa: E501
 
     :rtype: InlineResponse2006
     """
-    return 'do some magic!'
+    # Paso 1: Obtener los IDs de los contenidos favoritos del perfil
+    response = requests.get(f"{BASE_URL_USER_SERVER}/users/{user_id}/profiles/{profile_id}/lists/favorites")
+    if response.status_code != 200:
+        return {"error": "No se pudieron obtener los favoritos"}, response.status_code
+
+    # Extraer los IDs de contenidos favoritos
+    favorite_content_ids = response.json()
+
+    # Paso 2: Obtener los géneros de los contenidos favoritos
+    favorite_genres = set()
+    for content_id in favorite_content_ids:
+        content_response = requests.get(f"{BASE_URL_CONTENT_API}/contents/{content_id}")
+        if content_response.status_code == 200:
+            content_data = content_response.json()
+            genre = content_data.get("genre")
+            if genre:
+                favorite_genres.add(genre)
+
+    # Paso 3: Buscar todos los contenidos que coincidan con los géneros favoritos
+    recommendations = []
+    all_contents_response = requests.get(f"{BASE_URL_CONTENT_API}/contents")
+    if all_contents_response.status_code != 200:
+        return {"error": "No se pudieron obtener los contenidos"}, all_contents_response.status_code
+
+    all_contents = all_contents_response.json()
+    for content in all_contents:
+        if content.get("genre") in favorite_genres:
+            # Agrega solo contentId y title a la lista de recomendaciones
+            recommendations.append({
+                "contentId": content["id"],
+                "title": content["title"]
+            })
+
+    # Paso 4: Devolver las recomendaciones en el formato esperado
+    return InlineResponse2006.from_dict({"recommendations": recommendations}), 200
 
 
 def update_specific_review_for_content_by_user(body, content_id, user_id):  # noqa: E501
@@ -147,3 +188,85 @@ def update_specific_review_for_content_by_user(body, content_id, user_id):  # no
     if connexion.request.is_json:
         body = UsersUserIdBody.from_dict(connexion.request.get_json())  # noqa: E501
     return 'do some magic!'
+
+
+def get_content_views(content_id):  # noqa: E501
+    """Get number of views for content
+
+    Retrieve the number of views for a specific content # noqa: E501
+
+    :param content_id: The ID of the content to retrieve views for
+    :type content_id: int
+
+    :rtype: InlineResponse200
+    """
+    result = fetch_view_count(content_id)
+    if result['status'] == 'success':
+        views = result['data'][0]['view_count'] if result['data'] else 0
+        return {'views': views}, 200
+    else:
+        return {'error': result['error']}, 400
+
+
+def add_content_view(content_id, body):
+    """
+    Maneja la solicitud POST para agregar una nueva entrada de 'views'.
+
+    Agrega una nueva entrada de 'views' asociada a un contenido específico.
+
+    :param content_id: El ID del contenido para el cual agregar la entrada de 'views'.
+    :type content_id: int
+    :param body: El cuerpo de la solicitud que contiene los datos necesarios para agregar la entrada de 'views'.
+    :type body: dict
+    :rtype: dict, int
+    :return: Devuelve un mensaje indicando si la operación fue exitosa o si ocurrió un error.
+    """
+    view_count = body.get('view_count')
+
+    result = add_view(content_id, view_count)
+    if result['status'] == 'success':
+        return {'message': 'View added successfully'}, 201
+    else:
+        return {'error': result['error']}, 400
+
+
+def update_content_view(content_id, body):
+    """
+    Maneja la solicitud PUT para actualizar la cantidad de 'views'.
+
+    Actualiza la cantidad de 'views' asociada a un contenido específico.
+
+    :param content_id: El ID del contenido para actualizar la cantidad de 'views'.
+    :type content_id: int
+    :param body: El cuerpo de la solicitud que contiene la nueva cantidad de 'views'.
+    :type body: dict
+    :rtype: dict, int
+    :return: Devuelve un mensaje indicando si la operación de actualización fue exitosa, si no se encontró ningún registro para actualizar, o si ocurrió un error.
+    """
+    new_view_count = body.get('new_view_count')
+    result = update_view(content_id, new_view_count)
+    if result['status'] == 'success' and result['rowcount'] > 0:
+        return {'message': 'View count updated successfully'}, 200
+    elif result['status'] == 'success':
+        return {'message': 'No record found to update'}, 404
+    else:
+        return {'error': result['error']}, 400
+
+def delete_content_view(content_id):
+    """
+    Maneja la solicitud DELETE para eliminar una entrada de 'views'.
+
+    Elimina una entrada de 'views' asociada a un contenido específico.
+
+    :param content_id: El ID del contenido para el cual eliminar la entrada de 'views'.
+    :type content_id: int
+    :rtype: dict, int
+    :return: Devuelve un mensaje indicando si la operación de eliminación fue exitosa, si no se encontró ningún registro para eliminar, o si ocurrió un error.
+    """
+    result = delete_view(int(content_id))
+    if result['status'] == 'success' and result['rowcount'] > 0:
+        return {'message': 'View deleted successfully'}, 200
+    elif result['status'] == 'success':
+        return {'message': 'No record found to delete'}, 404
+    else:
+        return {'error': result['error']}, 400
