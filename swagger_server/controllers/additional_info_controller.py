@@ -49,7 +49,7 @@ def add_numeric_review_for_content(content_id, user_id, profile_id, body):  # no
         return {'error': result['error']}, 400
 
 
-def delete_specific_review_for_content_by_user(content_id, user_id):  # noqa: E501
+def delete_numeric_review_for_content(content_id, user_id, profile_id):  # noqa: E501
     """Delete a specific review for content by user
 
     Delete a specific numeric review for a given content and user # noqa: E501
@@ -58,13 +58,21 @@ def delete_specific_review_for_content_by_user(content_id, user_id):  # noqa: E5
     :type content_id: int
     :param user_id: The ID of the user whose review is to be deleted
     :type user_id: int
+    :param profile_id: The ID of the profile whose review is to be deleted
+    :type profile_id: int
 
     :rtype: None
     """
-    return 'do some magic!'
+    result = delete_review(content_id, user_id, profile_id)
+    if result['status'] == 'success' and result['rowcount'] > 0:
+        return {'message': 'Review deleted successfully'}, 200
+    elif result['status'] == 'success':
+        return {'message': 'No record found to delete'}, 404
+    else:
+        return {'error': result['error']}, 400
 
 
-def get_numeric_review_for_content_by_user(content_id, user_id):  # noqa: E501
+def get_numeric_review_for_content_by_user_and_profile(content_id, user_id, profile_id):  # noqa: E501
     """Get a specific review for content by user
 
     Retrieve a specific numeric review made by a user for a given content # noqa: E501
@@ -76,7 +84,13 @@ def get_numeric_review_for_content_by_user(content_id, user_id):  # noqa: E501
 
     :rtype: InlineResponse2002
     """
-    return 'do some magic!'
+    result = fetch_review(content_id, user_id, profile_id)
+    if result['status'] == 'success' and result['data']:
+        return result['data'][0], 200
+    elif result['status'] == 'success':
+        return {'message': 'No record found'}, 404
+    else:
+        return {'error': result['error']}, 400
 
 
 def get_numeric_reviews_by_user(user_id):  # noqa: E501
@@ -89,7 +103,22 @@ def get_numeric_reviews_by_user(user_id):  # noqa: E501
 
     :rtype: InlineResponse2004
     """
-    return 'do some magic!'
+    result = fetch_reviews_by_user(user_id)
+    if result['status'] == 'success' and result['data']:
+        formatted_reviews = [
+            {
+                "profileId": review["profile_id"],
+                "contentId": review["content_id"],
+                "rating": review["rating"],
+                "userId": review["user_id"]
+            }
+            for review in result['data']
+        ]
+        return {"reviews": formatted_reviews}, 200
+    elif result['status'] == 'success':
+        return {'message': 'No reviews found for this user'}, 404
+    else:
+        return {'error': result['error']}, 400
 
 
 def get_numeric_reviews_for_content(content_id):  # noqa: E501
@@ -102,10 +131,25 @@ def get_numeric_reviews_for_content(content_id):  # noqa: E501
 
     :rtype: InlineResponse2001
     """
-    return 'do some magic!'
+    result = fetch_reviews_for_content(content_id)
+    if result['status'] == 'success' and result['data']:
+        formatted_reviews = [
+            {
+                "contentId": review["content_id"],
+                "rating": review["rating"],
+                "userId": review["user_id"],
+                "profileId": review["profile_id"]
+            }
+            for review in result['data']
+        ]
+        return {"reviews": formatted_reviews}, 200
+    elif result['status'] == 'success':
+        return {'message': 'No reviews found for this content'}, 404
+    else:
+        return {'error': result['error']}, 400
 
 
-def update_specific_review_for_content_by_user(body, content_id, user_id):  # noqa: E501
+def update_numeric_review_for_content_by_user_and_profile(content_id, user_id, profile_id, body):  # noqa: E501
     """Update a specific review for content by user
 
     Update an existing numeric review for a given content and user # noqa: E501
@@ -116,12 +160,24 @@ def update_specific_review_for_content_by_user(body, content_id, user_id):  # no
     :type content_id: int
     :param user_id: The ID of the user whose review is being updated
     :type user_id: int
+    :param profile_id: The ID of the profile whose review is being updated
+    :type profile_id: int
 
     :rtype: InlineResponse2003
     """
-    if connexion.request.is_json:
-        body = UsersUserIdBody.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    new_rating = body.get('rating')
+
+    # Validar el rango de la calificación
+    if not (1 <= new_rating <= 5):
+        return {'error': 'Rating must be between 1 and 5'}, 400
+
+    result = update_review(content_id, user_id, profile_id, new_rating)
+    if result['status'] == 'success' and result['rowcount'] > 0:
+        return {'message': 'Review updated successfully'}, 200
+    elif result['status'] == 'success':
+        return {'message': 'No record found to update'}, 404
+    else:
+        return {'error': result['error']}, 400
 
 
 def get_content_languages(content_id):  # noqa: E501
