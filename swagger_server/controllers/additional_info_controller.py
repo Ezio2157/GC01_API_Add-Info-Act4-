@@ -225,9 +225,9 @@ def get_content_languages(content_id):  # noqa: E501
             # Extrae la respuesta JSON completa
             content_data = response.json()
             # Extrae solo la parte de "languages" del contenido
-            languages = content_data.get("languages", [])
+            language = content_data.get("language", [])
             # Devuelve los idiomas en la estructura esperada por InlineResponse2005
-            response_model = InlineResponse2001(languages=languages)
+            response_model = InlineResponse2001(languages=language)
             return response_model, response.status_code
         except ValueError:
             # Maneja el caso donde la respuesta no es JSON válido
