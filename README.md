@@ -15,19 +15,19 @@ To run the server, please execute the following from the root directory:
 
 ```
 pip3 install -r requirements.txt
-python3 -m swagger_server
+python -m swagger_server
 ```
 
 and open your browser to here:
 
 ```
-http://localhost:8082/v1/ui/
+http://localhost:8083/v1/ui/
 ```
 
 Your Swagger definition lives here:
 
 ```
-http://localhost:8082/v1/swagger.json
+http://localhost:8083/v1/swagger.json
 ```
 
 To launch the integration tests, use tox:

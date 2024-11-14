@@ -1,163 +1,168 @@
 openapi: 3.0.3
 info:
-  title: Additional Info management API
-  description: "API for additional functions related to content (movies, series, and\
-    \ episodes) on a streaming platform, including CRUD operations for reviews."
+  title: Additional Info Management API
+  description: "API for managing views, reviews, continue-watching functionality, and other additional operations for content on a streaming platform."
   version: 1.0.0
 servers:
-- url: https://myapi.com/v1
+  - url: https://myapi.com/v1
 tags:
-- name: additional-info
-  description: "Additional operations related to content, such as reviews and recommendations"
+  - name: views
+    description: "Operations related to content views."
+  - name: reviews
+    description: "Operations related to content reviews."
+  - name: continue-watching
+    description: "Operations related to continue watching functionality."
+  - name: misc
+    description: "Miscellaneous operations for additional functionalities."
+
 paths:
-  /contents/{contentId}/views:
+  /contents/{content_id}/views:
     get:
       tags:
-      - additional-info
+        - views
       summary: Get number of views for content
-      description: Retrieve the number of views for a specific content
+      description: Retrieve the number of views for a specific content.
       operationId: get_content_views
       parameters:
-      - name: contentId
-        in: path
-        description: The ID of the content to retrieve views for
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
+        - $ref: '#/components/parameters/content_id'
       responses:
         "200":
           description: Number of views for the content
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200'
+                $ref: '#/components/schemas/ViewResponse'
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
-  /contents/{contentId}/reviews:
+    post:
+      tags:
+        - views
+      summary: Add a view entry for content
+      description: Add a new view entry for a specific content.
+      operationId: add_content_view
+      parameters:
+        - $ref: '#/components/parameters/content_id'
+      requestBody:
+        description: Data for the new view entry
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ViewRequest'
+      responses:
+        "201":
+          description: View entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Invalid input or error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+    put:
+      tags:
+        - views
+      summary: Update view count for specific content and user
+      description: Update the view count for a specific content by a user.
+      operationId: update_content_view
+      parameters:
+        - $ref: '#/components/parameters/content_id'
+      requestBody:
+        description: Updated view count
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateViewRequest'
+      responses:
+        "200":
+          description: View count updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "404":
+          description: No record found to update
+        "400":
+          description: Invalid input or error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+    delete:
+      tags:
+        - views
+      summary: Delete view entry for content by user
+      description: Delete a view entry for a specific content and user.
+      operationId: delete_content_view
+      parameters:
+        - $ref: '#/components/parameters/content_id'
+      responses:
+        "200":
+          description: View entry deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "404":
+          description: No record found to delete
+        "400":
+          description: Error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
+  /contents/{content_id}/reviews:
     get:
       tags:
-      - additional-info
+        - reviews
       summary: Get numeric reviews for specific content
-      description: Retrieve all numeric reviews (user ID and rating) made for a specific
-        content
+      description: Retrieve all numeric reviews (user ID and rating) made for a specific content.
       operationId: get_numeric_reviews_for_content
       parameters:
-      - name: contentId
-        in: path
-        description: The ID of the content to retrieve reviews for
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
+        - $ref: '#/components/parameters/content_id'
       responses:
         "200":
           description: List of numeric reviews for the specific content
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200_1'
+                $ref: '#/components/schemas/ReviewsResponse'
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
-  /contents/{contentId}/reviews/users/{userId}:
+
+  /contents/{content_id}/reviews/users/{user_id}/profiles/{profile_id}:
     get:
       tags:
-      - additional-info
-      summary: Get a specific review for content by user
-      description: Retrieve a specific numeric review made by a user for a given content
-      operationId: get_numeric_review_for_content_by_user
+        - reviews
+      summary: Get a specific review for content by user and profile
+      description: Retrieve a specific numeric review made by a user for a given content and profile.
+      operationId: get_numeric_review_for_content_by_user_and_profile
       parameters:
-      - name: contentId
-        in: path
-        description: The ID of the content to retrieve the review for
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-      - name: userId
-        in: path
-        description: The ID of the user whose review to retrieve
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
+        - $ref: '#/components/parameters/content_id'
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/profile_id'
       responses:
         "200":
           description: The requested numeric review
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200_2'
-      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
-    put:
-      tags:
-      - additional-info
-      summary: Update a specific review for content by user
-      description: Update an existing numeric review for a given content and user
-      operationId: update_specific_review_for_content_by_user
-      parameters:
-      - name: contentId
-        in: path
-        description: The ID of the content to update the review for
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-      - name: userId
-        in: path
-        description: The ID of the user whose review is being updated
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-      requestBody:
-        description: The updated review data
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/users_userId_body'
-        required: true
-      responses:
-        "200":
-          description: Review updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/inline_response_200_3'
+                $ref: '#/components/schemas/ReviewResponse'
+        "404":
+          description: No record found
+        "400":
+          description: Error occurred
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
     post:
       tags:
-      - additional-info
-      summary: Add a numeric review for content
-      description: Submit a numeric review for a specific content by a user
+        - reviews
+      summary: Add a numeric review for content by user and profile
+      description: Submit a numeric review for a specific content by a user and profile.
       operationId: add_numeric_review_for_content
       parameters:
-      - name: contentId
-        in: path
-        description: The ID of the content to review
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-      - name: userId
-        in: path
-        description: The ID of the user submitting the review
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
+        - $ref: '#/components/parameters/content_id'
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/profile_id'
       requestBody:
         description: The review data
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/users_userId_body_1'
+              $ref: '#/components/schemas/ReviewRequest'
         required: true
       responses:
         "201":
@@ -165,118 +170,317 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_201'
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Invalid input or error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+    put:
+      tags:
+        - reviews
+      summary: Update a specific review for content by user and profile
+      description: Update an existing numeric review for a given content, user, and profile.
+      operationId: update_numeric_review_for_content_by_user_and_profile
+      parameters:
+        - $ref: '#/components/parameters/content_id'
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/profile_id'
+      requestBody:
+        description: The updated review data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReviewRequest'
+        required: true
+      responses:
+        "200":
+          description: Review updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "404":
+          description: No record found to update
+        "400":
+          description: Error occurred
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
     delete:
       tags:
-      - additional-info
-      summary: Delete a specific review for content by user
-      description: Delete a specific numeric review for a given content and user
-      operationId: delete_specific_review_for_content_by_user
+        - reviews
+      summary: Delete a specific review for content by user and profile
+      description: Delete a specific numeric review for a given content by a user and profile.
+      operationId: delete_numeric_review_for_content
       parameters:
-      - name: contentId
-        in: path
-        description: The ID of the content to delete the review for
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-      - name: userId
-        in: path
-        description: The ID of the user whose review is to be deleted
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
+        - $ref: '#/components/parameters/content_id'
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/profile_id'
       responses:
-        "204":
+        "200":
           description: Review deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "404":
+          description: No record found to delete
+        "400":
+          description: Error occurred
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
-  /users/{userId}/reviews:
+
+  /users/{user_id}/reviews:
     get:
       tags:
-      - additional-info
+        - reviews
       summary: Get reviews by user
-      description: Retrieve all numeric reviews made by a specific user
+      description: Retrieve all numeric reviews made by a specific user.
       operationId: get_numeric_reviews_by_user
       parameters:
-      - name: userId
-        in: path
-        description: The ID of the user whose reviews to retrieve
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
+        - $ref: '#/components/parameters/user_id'
       responses:
         "200":
           description: List of numeric reviews made by the user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200_4'
+                $ref: '#/components/schemas/ReviewsResponse'
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
-  /contents/{contentId}/languages:
+
+  /users/{user_id}/profiles/{profile_id}/continue-watching/{content_id}:
     get:
       tags:
-      - additional-info
+        - continue-watching
+      summary: Get last watched minute for content
+      description: Retrieve the last watched minute for a specific content by a user and profile.
+      operationId: get_continue_watching
+      parameters:
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/profile_id'
+        - $ref: '#/components/parameters/content_id'
+      responses:
+        "200":
+          description: Last watched minute for the content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  last_watched_minute:
+                    type: integer
+                    description: Last watched minute
+                example:
+                  last_watched_minute: 35
+        "404":
+          description: No record found
+        "400":
+          description: Error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+    post:
+      tags:
+        - continue-watching
+      summary: Add continue watching entry
+      description: Add a new entry for a user's last watched minute for a specific content.
+      operationId: add_continue_watching
+      parameters:
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/profile_id'
+        - $ref: '#/components/parameters/content_id'
+      requestBody:
+        description: Data for the continue watching entry
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                last_watched_minute:
+                  type: integer
+                  description: The minute where the user stopped watching
+              required:
+                - last_watched_minute
+              example:
+                last_watched_minute: 120
+      responses:
+        "201":
+          description: Continue watching entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Invalid input or error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+    put:
+      tags:
+        - continue-watching
+      summary: Update continue watching entry
+      description: Update the last watched minute for a user's content.
+      operationId: update_continue_watching
+      parameters:
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/profile_id'
+        - $ref: '#/components/parameters/content_id'
+      requestBody:
+        description: Updated continue watching data
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_last_watched_minute:
+                  type: integer
+                  description: The new minute where the user stopped watching
+              required:
+                - new_last_watched_minute
+              example:
+                new_last_watched_minute: 145
+      responses:
+        "200":
+          description: Continue watching entry updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "404":
+          description: No record found to update
+        "400":
+          description: Invalid input or error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+    delete:
+      tags:
+        - continue-watching
+      summary: Delete continue watching entry
+      description: Delete a continue watching entry for a specific content by a user and profile.
+      operationId: delete_continue_watching
+      parameters:
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/profile_id'
+        - $ref: '#/components/parameters/content_id'
+      responses:
+        "200":
+          description: Continue watching entry deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "404":
+          description: No record found to delete
+        "400":
+          description: Error occurred
+      x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
+  /contents/{content_id}/languages:
+    get:
+      tags:
+        - misc
       summary: Get available languages for content
-      description: Retrieve a list of available languages for a specific content
+      description: Retrieve a list of available languages for a specific content.
       operationId: get_content_languages
       parameters:
-      - name: contentId
-        in: path
-        description: The ID of the content to retrieve languages for
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
+        - $ref: '#/components/parameters/content_id'
       responses:
         "200":
           description: List of available languages for the content
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200_5'
+                type: object
+                properties:
+                  languages:
+                    type: array
+                    items:
+                      type: string
+                      description: Language available for audio or subtitles
+                example:
+                  languages:
+                    - English
+                    - Spanish
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
-  /users/{userId}/profiles/{profileId}/recommendations:
+
+  /users/{user_id}/profiles/{profile_id}/recommendations:
     get:
       tags:
-      - additional-info
+        - misc
       summary: Get recommendations for a profile
-      description: Retrieve content recommendations based on a user's viewing history
+      description: Retrieve content recommendations based on a user's viewing history.
       operationId: get_recommendations_for_user
       parameters:
-      - name: userId
-        in: path
-        description: The ID of the user to retrieve recommendations for
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-      - name: profileId
-        in: path
-        description: The ID of the profile to retrieve recommendations for
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
+        - $ref: '#/components/parameters/user_id'
+        - $ref: '#/components/parameters/profile_id'
       responses:
         "200":
           description: List of content recommendations for the user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200_6'
+                type: object
+                properties:
+                  recommendations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        content_id:
+                          type: integer
+                          description: The ID of the recommended content
+                        title:
+                          type: string
+                          description: Title of the recommended content
+                example:
+                  recommendations:
+                    - content_id: 1
+                      title: "Movie 1"
+                    - content_id: 2
+                      title: "Series 2"
       x-openapi-router-controller: swagger_server.controllers.additional_info_controller
+
 components:
+  parameters:
+    content_id:
+      name: content_id
+      in: path
+      description: The ID of the content
+      required: true
+      schema:
+        type: integer
+    user_id:
+      name: user_id
+      in: path
+      description: The ID of the user
+      required: true
+      schema:
+        type: integer
+    profile_id:
+      name: profile_id
+      in: path
+      description: The ID of the profile
+      required: true
+      schema:
+        type: integer
+
   schemas:
-    inline_response_200:
+    ViewRequest:
+      type: object
+      properties:
+        view_count:
+          type: integer
+          description: The number of views to add
+      required:
+        - view_count
+      example:
+        view_count: 10
+
+    UpdateViewRequest:
+      type: object
+      properties:
+        new_view_count:
+          type: integer
+          description: The new view count value
+      required:
+        - new_view_count
+      example:
+        new_view_count: 15
+
+    ViewResponse:
       type: object
       properties:
         views:
@@ -284,7 +488,34 @@ components:
           description: Total number of views for the content
       example:
         views: 0
-    inline_response_200_1:
+
+    ReviewRequest:
+      type: object
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Rating for the content (1 to 5 stars)
+      required:
+        - rating
+      example:
+        rating: 4
+
+    UpdateReviewRequest:
+      type: object
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Updated rating for the content (1 to 5 stars)
+      required:
+        - rating
+      example:
+        rating: 5
+
+    ReviewsResponse:
       type: object
       properties:
         reviews:
@@ -292,133 +523,65 @@ components:
           items:
             type: object
             properties:
-              userId:
-                type: integer
-                description: The ID of the user who wrote the review
-              contentId:
+              content_id:
                 type: integer
                 description: The ID of the content being reviewed
               rating:
                 type: integer
                 description: User's rating for the content (1 to 5 stars)
-            example:
-              contentId: 6
-              rating: 1
-              userId: 0
+              user_id:
+                type: integer
+                description: The ID of the user who wrote the review
+              profile_id:
+                type: integer
+                description: The ID of the profile associated with the review
+            required:
+              - content_id
+              - rating
+              - user_id
+              - profile_id
       example:
         reviews:
-        - contentId: 6
-          rating: 1
-          userId: 0
-        - contentId: 6
-          rating: 1
-          userId: 0
-    inline_response_200_2:
+          - content_id: 6
+            rating: 5
+            user_id: 2
+            profile_id: 1
+          - content_id: 7
+            rating: 3
+            user_id: 3
+            profile_id: 2
+
+    ReviewResponse:
       type: object
       properties:
-        userId:
-          type: integer
-          description: The ID of the user who wrote the review
-        contentId:
+        content_id:
           type: integer
           description: The ID of the content being reviewed
         rating:
           type: integer
           description: User's rating for the content (1 to 5 stars)
-      example:
-        contentId: 6
-        rating: 1
-        userId: 0
-    users_userId_body:
-      type: object
-      properties:
-        rating:
-          maximum: 5
-          minimum: 1
+        user_id:
           type: integer
-          description: Updated rating for the content (1 to 5 stars)
-    inline_response_200_3:
-      type: object
-      properties:
-        message:
-          type: string
-          description: Confirmation message
-          example: Review updated successfully
-      example:
-        message: Review updated successfully
-    users_userId_body_1:
-      type: object
-      properties:
-        rating:
-          maximum: 5
-          minimum: 1
+          description: The ID of the user who wrote the review
+        profile_id:
           type: integer
-          description: Rating for the content (1 to 5 stars)
-    inline_response_201:
-      type: object
-      properties:
-        message:
-          type: string
-          description: Confirmation message
-          example: Review added successfully
+          description: The ID of the profile associated with the review
+      required:
+        - content_id
+        - rating
+        - user_id
+        - profile_id
       example:
-        message: Review added successfully
-    inline_response_200_4:
-      type: object
-      properties:
-        reviews:
-          type: array
-          items:
-            type: object
-            properties:
-              contentId:
-                type: integer
-                description: The ID of the content being reviewed
-              rating:
-                type: integer
-                description: User's rating for the content (1 to 5 stars)
-            example:
-              contentId: 0
-              rating: 6
-      example:
-        reviews:
-        - contentId: 0
-          rating: 6
-        - contentId: 0
-          rating: 6
-    inline_response_200_5:
-      type: object
-      properties:
-        languages:
-          type: array
-          items:
-            type: string
-            description: Language available for audio or subtitles
-      example:
-        languages:
-        - languages
-        - languages
-    inline_response_200_6:
-      type: object
-      properties:
-        recommendations:
-          type: array
-          items:
-            type: object
-            properties:
-              contentId:
-                type: integer
-                description: The ID of the recommended content
-              title:
-                type: string
-                description: Title of the recommended content
-            example:
-              contentId: 0
-              title: title
-      example:
-        recommendations:
-        - contentId: 0
-          title: title
-        - contentId: 0
-          title: title
+        content_id: 6
+        rating: 4
+        user_id: 2
+        profile_id: 1
 
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Confirmation message
+      example:
+        message: Operation successful

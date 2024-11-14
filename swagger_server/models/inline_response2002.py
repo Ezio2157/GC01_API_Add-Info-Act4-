@@ -6,6 +6,7 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from swagger_server.models.base_model_ import Model
+from swagger_server.models.inline_response2002_recommendations import InlineResponse2002Recommendations  # noqa: F401,E501
 from swagger_server import util
 
 
@@ -14,30 +15,20 @@ class InlineResponse2002(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, user_id: int=None, content_id: int=None, rating: int=None):  # noqa: E501
+    def __init__(self, recommendations: List[InlineResponse2002Recommendations]=None):  # noqa: E501
         """InlineResponse2002 - a model defined in Swagger
 
-        :param user_id: The user_id of this InlineResponse2002.  # noqa: E501
-        :type user_id: int
-        :param content_id: The content_id of this InlineResponse2002.  # noqa: E501
-        :type content_id: int
-        :param rating: The rating of this InlineResponse2002.  # noqa: E501
-        :type rating: int
+        :param recommendations: The recommendations of this InlineResponse2002.  # noqa: E501
+        :type recommendations: List[InlineResponse2002Recommendations]
         """
         self.swagger_types = {
-            'user_id': int,
-            'content_id': int,
-            'rating': int
+            'recommendations': List[InlineResponse2002Recommendations]
         }
 
         self.attribute_map = {
-            'user_id': 'userId',
-            'content_id': 'contentId',
-            'rating': 'rating'
+            'recommendations': 'recommendations'
         }
-        self._user_id = user_id
-        self._content_id = content_id
-        self._rating = rating
+        self._recommendations = recommendations
 
     @classmethod
     def from_dict(cls, dikt) -> 'InlineResponse2002':
@@ -51,70 +42,22 @@ class InlineResponse2002(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def user_id(self) -> int:
-        """Gets the user_id of this InlineResponse2002.
+    def recommendations(self) -> List[InlineResponse2002Recommendations]:
+        """Gets the recommendations of this InlineResponse2002.
 
-        The ID of the user who wrote the review  # noqa: E501
 
-        :return: The user_id of this InlineResponse2002.
-        :rtype: int
+        :return: The recommendations of this InlineResponse2002.
+        :rtype: List[InlineResponse2002Recommendations]
         """
-        return self._user_id
+        return self._recommendations
 
-    @user_id.setter
-    def user_id(self, user_id: int):
-        """Sets the user_id of this InlineResponse2002.
+    @recommendations.setter
+    def recommendations(self, recommendations: List[InlineResponse2002Recommendations]):
+        """Sets the recommendations of this InlineResponse2002.
 
-        The ID of the user who wrote the review  # noqa: E501
 
-        :param user_id: The user_id of this InlineResponse2002.
-        :type user_id: int
+        :param recommendations: The recommendations of this InlineResponse2002.
+        :type recommendations: List[InlineResponse2002Recommendations]
         """
 
-        self._user_id = user_id
-
-    @property
-    def content_id(self) -> int:
-        """Gets the content_id of this InlineResponse2002.
-
-        The ID of the content being reviewed  # noqa: E501
-
-        :return: The content_id of this InlineResponse2002.
-        :rtype: int
-        """
-        return self._content_id
-
-    @content_id.setter
-    def content_id(self, content_id: int):
-        """Sets the content_id of this InlineResponse2002.
-
-        The ID of the content being reviewed  # noqa: E501
-
-        :param content_id: The content_id of this InlineResponse2002.
-        :type content_id: int
-        """
-
-        self._content_id = content_id
-
-    @property
-    def rating(self) -> int:
-        """Gets the rating of this InlineResponse2002.
-
-        User's rating for the content (1 to 5 stars)  # noqa: E501
-
-        :return: The rating of this InlineResponse2002.
-        :rtype: int
-        """
-        return self._rating
-
-    @rating.setter
-    def rating(self, rating: int):
-        """Sets the rating of this InlineResponse2002.
-
-        User's rating for the content (1 to 5 stars)  # noqa: E501
-
-        :param rating: The rating of this InlineResponse2002.
-        :type rating: int
-        """
-
-        self._rating = rating
+        self._recommendations = recommendations
