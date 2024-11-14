@@ -324,7 +324,7 @@ def add_content_view(content_id, body):
 
     if result['status'] == 'success':
         response_model = SuccessResponse(message='View added successfully')
-        return response_model, 201
+        return response_model, 200
     else:
         return {'error': result['error']}, 400
 
