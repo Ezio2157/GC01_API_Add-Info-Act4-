@@ -9,6 +9,9 @@ import pytest
 from unittest.mock import patch
 from requests.models import Response
 
+from swagger_server.models.continuewatching_content_id_body import ContinuewatchingContentIdBody  # noqa: E501
+from swagger_server.models.continuewatching_content_id_body1 import ContinuewatchingContentIdBody1  # noqa: E501
+from swagger_server.models.inline_response200 import InlineResponse200  # noqa: E501
 from swagger_server.models.success_response import SuccessResponse  # noqa: E501
 from swagger_server.models.update_view_request import UpdateViewRequest  # noqa: E501
 from swagger_server.models.view_request import ViewRequest  # noqa: E501
@@ -142,7 +145,7 @@ class TestAdditionalInfoController(BaseTestCase):
             method='POST',
             data=json.dumps(body.to_dict()),
             content_type='application/json')
-        self.assertEqual(response.status_code, 200,  # Reemplaza self.assert200
+        self.assertEqual(response.status_code, 200,
                          'Response body is : ' + response.data.decode('utf-8'))
 
     def test_2_delete_content_view(self):
@@ -153,7 +156,7 @@ class TestAdditionalInfoController(BaseTestCase):
         response = self.client.open(
             '/v1/contents/{content_id}/views'.format(content_id=56),
             method='DELETE')
-        self.assertEqual(response.status_code, 200,  # Reemplaza self.assert200
+        self.assertEqual(response.status_code, 200,
                          'Response body is : ' + response.data.decode('utf-8'))
 
     def test_1_get_content_views(self):
@@ -164,7 +167,7 @@ class TestAdditionalInfoController(BaseTestCase):
         response = self.client.open(
             '/v1/contents/{content_id}/views'.format(content_id=56),
             method='GET')
-        self.assertEqual(response.status_code, 200,  # Reemplaza self.assert200
+        self.assertEqual(response.status_code, 200,
                          'Response body is : ' + response.data.decode('utf-8'))
 
     def test_1_update_content_view(self):
@@ -178,7 +181,7 @@ class TestAdditionalInfoController(BaseTestCase):
             method='PUT',
             data=json.dumps(body.to_dict()),
             content_type='application/json')
-        self.assertEqual(response.status_code, 200,  # Reemplaza self.assert200
+        self.assertEqual(response.status_code, 200,
                          'Response body is : ' + response.data.decode('utf-8'))
 
     @pytest.mark.usefixtures("mock_get_content_languages")
@@ -221,3 +224,57 @@ class TestAdditionalInfoController(BaseTestCase):
         ]
         self.assertEqual(response_data['recommendations'], expected_recommendations,
                          'Las recomendaciones no coinciden con lo esperado')
+
+    def test_1_add_continue_watching(self):
+        """Test case for add_continue_watching
+
+        Add continue watching entry
+        """
+        body = ContinuewatchingContentIdBody1(30)
+        response = self.client.open(
+            '/v1/users/{user_id}/profiles/{profile_id}/continue-watching/{content_id}'.format(user_id=56, profile_id=56,
+                                                                                              content_id=56),
+            method='POST',
+            data=json.dumps(body.to_dict()),
+            content_type='application/json')
+        self.assertEqual(response.status_code, 200,
+                         'Response body is : ' + response.data.decode('utf-8'))
+
+    def test_2_delete_continue_watching(self):
+        """Test case for delete_continue_watching
+
+        Delete continue watching entry
+        """
+        response = self.client.open(
+            '/v1/users/{user_id}/profiles/{profile_id}/continue-watching/{content_id}'.format(user_id=56, profile_id=56,
+                                                                                              content_id=56),
+            method='DELETE')
+        self.assertEqual(response.status_code, 200,
+                         'Response body is : ' + response.data.decode('utf-8'))
+
+    def test_1_get_continue_watching(self):
+        """Test case for get_continue_watching
+
+        Get last watched minute for content
+        """
+        response = self.client.open(
+            '/v1/users/{user_id}/profiles/{profile_id}/continue-watching/{content_id}'.format(user_id=56, profile_id=56,
+                                                                                              content_id=56),
+            method='GET')
+        self.assertEqual(response.status_code, 200,
+                         'Response body is : ' + response.data.decode('utf-8'))
+
+    def test_1_update_continue_watching(self):
+        """Test case for update_continue_watching
+
+        Update continue watching entry
+        """
+        body = ContinuewatchingContentIdBody(60)
+        response = self.client.open(
+            '/v1/users/{user_id}/profiles/{profile_id}/continue-watching/{content_id}'.format(user_id=56, profile_id=56,
+                                                                                              content_id=56),
+            method='PUT',
+            data=json.dumps(body.to_dict()),
+            content_type='application/json')
+        self.assertEqual(response.status_code, 200,
+                         'Response body is : ' + response.data.decode('utf-8'))
