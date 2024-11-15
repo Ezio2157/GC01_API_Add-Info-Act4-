@@ -51,7 +51,7 @@ def add_numeric_review_for_content(content_id, user_id, profile_id, body):  # no
 
     if result['status'] == 'success':
         response = SuccessResponse(message='Review added successfully')
-        return response, 201
+        return response, 200
     else:
         return {'error': result['error']}, 400
 
@@ -431,7 +431,7 @@ def add_continue_watching(user_id, profile_id, content_id, body):
 
     if result['status'] == 'success':
         response_model = SuccessResponse(message='Continue watching entry created successfully')
-        return response_model, 201
+        return response_model, 200
     else:
         return {'error': result['error']}, 400
 
