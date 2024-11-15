@@ -9,6 +9,10 @@ import pytest
 from unittest.mock import patch
 from requests.models import Response
 
+from swagger_server.models.review_request import ReviewRequest  # noqa: E501
+from swagger_server.models.review_response import ReviewResponse  # noqa: E501
+from swagger_server.models.reviews_response import ReviewsResponse  # noqa: E501
+from swagger_server.models.update_review_request import UpdateReviewRequest  # noqa: E501
 from swagger_server.models.continuewatching_content_id_body import ContinuewatchingContentIdBody  # noqa: E501
 from swagger_server.models.continuewatching_content_id_body1 import ContinuewatchingContentIdBody1  # noqa: E501
 from swagger_server.models.inline_response200 import InlineResponse200  # noqa: E501
@@ -273,6 +277,82 @@ class TestAdditionalInfoController(BaseTestCase):
         response = self.client.open(
             '/v1/users/{user_id}/profiles/{profile_id}/continue-watching/{content_id}'.format(user_id=56, profile_id=56,
                                                                                               content_id=56),
+            method='PUT',
+            data=json.dumps(body.to_dict()),
+            content_type='application/json')
+        self.assertEqual(response.status_code, 200,
+                         'Response body is : ' + response.data.decode('utf-8'))
+
+    def test_1_add_numeric_review_for_content(self):
+        """Test case for add_numeric_review_for_content
+
+        Add a numeric review for content by user and profile
+        """
+        body = ReviewRequest(5)
+        response = self.client.open(
+            '/v1/contents/{content_id}/reviews/users/{user_id}/profiles/{profile_id}'.format(content_id=56, user_id=56,
+                                                                                             profile_id=56),
+            method='POST',
+            data=json.dumps(body.to_dict()),
+            content_type='application/json')
+        self.assertEqual(response.status_code, 200,
+                         'Response body is : ' + response.data.decode('utf-8'))
+
+    def test_2_delete_numeric_review_for_content(self):
+        """Test case for delete_numeric_review_for_content
+
+        Delete a specific review for content by user and profile
+        """
+        response = self.client.open(
+            '/v1/contents/{content_id}/reviews/users/{user_id}/profiles/{profile_id}'.format(content_id=56, user_id=56,
+                                                                                             profile_id=56),
+            method='DELETE')
+        self.assertEqual(response.status_code, 200,
+                         'Response body is : ' + response.data.decode('utf-8'))
+
+    def test_1_get_numeric_review_for_content_by_user_and_profile(self):
+        """Test case for get_numeric_review_for_content_by_user_and_profile
+
+        Get a specific review for content by user and profile
+        """
+        response = self.client.open(
+            '/v1/contents/{content_id}/reviews/users/{user_id}/profiles/{profile_id}'.format(content_id=56, user_id=56,
+                                                                                             profile_id=56),
+            method='GET')
+        self.assertEqual(response.status_code, 200,
+                         'Response body is : ' + response.data.decode('utf-8'))
+
+    def test_1_get_numeric_reviews_by_user(self):
+        """Test case for get_numeric_reviews_by_user
+
+        Get reviews by user
+        """
+        response = self.client.open(
+            '/v1/users/{user_id}/reviews'.format(user_id=56),
+            method='GET')
+        self.assertEqual(response.status_code, 200,
+                         'Response body is : ' + response.data.decode('utf-8'))
+
+    def test_1_get_numeric_reviews_for_content(self):
+        """Test case for get_numeric_reviews_for_content
+
+        Get numeric reviews for specific content
+        """
+        response = self.client.open(
+            '/v1/contents/{content_id}/reviews'.format(content_id=56),
+            method='GET')
+        self.assertEqual(response.status_code, 200,
+                         'Response body is : ' + response.data.decode('utf-8'))
+
+    def test_1_update_numeric_review_for_content_by_user_and_profile(self):
+        """Test case for update_numeric_review_for_content_by_user_and_profile
+
+        Update a specific review for content by user and profile
+        """
+        body = UpdateReviewRequest(3)
+        response = self.client.open(
+            '/v1/contents/{content_id}/reviews/users/{user_id}/profiles/{profile_id}'.format(content_id=56, user_id=56,
+                                                                                             profile_id=56),
             method='PUT',
             data=json.dumps(body.to_dict()),
             content_type='application/json')
