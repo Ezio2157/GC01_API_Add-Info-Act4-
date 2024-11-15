@@ -4,16 +4,21 @@ import requests
 from swagger_server.services.view_service import *
 from swagger_server.services.continue_watching_service import *
 from swagger_server.services.review_service import *
+from swagger_server.models.continuewatching_content_id_body import ContinuewatchingContentIdBody  # noqa: E501
+from swagger_server.models.continuewatching_content_id_body1 import ContinuewatchingContentIdBody1  # noqa: E501
 from swagger_server.models.inline_response200 import InlineResponse200  # noqa: E501
+from swagger_server.models.success_response import SuccessResponse  # noqa: E501
 from swagger_server.models.inline_response2001 import InlineResponse2001  # noqa: E501
 from swagger_server.models.inline_response2002 import InlineResponse2002  # noqa: E501
-from swagger_server.models.inline_response2003 import InlineResponse2003  # noqa: E501
-from swagger_server.models.inline_response2004 import InlineResponse2004  # noqa: E501
-from swagger_server.models.inline_response2005 import InlineResponse2005  # noqa: E501
-from swagger_server.models.inline_response2006 import InlineResponse2006  # noqa: E501
-from swagger_server.models.inline_response201 import InlineResponse201  # noqa: E501
-from swagger_server.models.users_user_id_body import UsersUserIdBody  # noqa: E501
-from swagger_server.models.users_user_id_body1 import UsersUserIdBody1  # noqa: E501
+from swagger_server.models.review_request import ReviewRequest  # noqa: E501
+from swagger_server.models.review_response import ReviewResponse  # noqa: E501
+from swagger_server.models.reviews_response import ReviewsResponse  # noqa: E501
+from swagger_server.models.success_response import SuccessResponse  # noqa: E501
+from swagger_server.models.update_review_request import UpdateReviewRequest  # noqa: E501
+from swagger_server.models.success_response import SuccessResponse  # noqa: E501
+from swagger_server.models.update_view_request import UpdateViewRequest  # noqa: E501
+from swagger_server.models.view_request import ViewRequest  # noqa: E501
+from swagger_server.models.view_response import ViewResponse  # noqa: E501
 from swagger_server import util
 
 BASE_URL_USER_SERVER = "http://localhost:8082/v1"
@@ -33,7 +38,7 @@ def add_numeric_review_for_content(content_id, user_id, profile_id, body):  # no
     :param profile_id: The ID of the profile submitting the review
     :type profile_id: int
 
-    :rtype: InlineResponse201
+    :rtype: SuccessResponse
     """
     rating = body.get('rating')
 
@@ -43,8 +48,10 @@ def add_numeric_review_for_content(content_id, user_id, profile_id, body):  # no
 
     # Llama a la función de base de datos para agregar la reseña
     result = insert_review(content_id, user_id, profile_id, rating)
+
     if result['status'] == 'success':
-        return {'message': 'Review added successfully'}, 201
+        response = SuccessResponse(message='Review added successfully')
+        return response, 200
     else:
         return {'error': result['error']}, 400
 
@@ -61,13 +68,16 @@ def delete_numeric_review_for_content(content_id, user_id, profile_id):  # noqa:
     :param profile_id: The ID of the profile whose review is to be deleted
     :type profile_id: int
 
-    :rtype: None
+    :rtype: SuccessResponse
     """
     result = delete_review(content_id, user_id, profile_id)
+
     if result['status'] == 'success' and result['rowcount'] > 0:
-        return {'message': 'Review deleted successfully'}, 200
+        response = SuccessResponse(message='Review deleted successfully')
+        return response, 200
     elif result['status'] == 'success':
-        return {'message': 'No record found to delete'}, 404
+        response = SuccessResponse(message='No record found to delete')
+        return response, 404
     else:
         return {'error': result['error']}, 400
 
@@ -81,12 +91,22 @@ def get_numeric_review_for_content_by_user_and_profile(content_id, user_id, prof
     :type content_id: int
     :param user_id: The ID of the user whose review to retrieve
     :type user_id: int
+    :param profile_id: The ID of the profile
+    :type profile_id: int
 
-    :rtype: InlineResponse2002
+    :rtype: ReviewResponse
     """
     result = fetch_review(content_id, user_id, profile_id)
+
     if result['status'] == 'success' and result['data']:
-        return result['data'][0], 200
+        review_data = result['data'][0]
+        response = ReviewResponse(
+            content_id=review_data['content_id'],
+            rating=review_data['rating'],
+            user_id=review_data['user_id'],
+            profile_id=review_data['profile_id']
+        )
+        return response, 200
     elif result['status'] == 'success':
         return {'message': 'No record found'}, 404
     else:
@@ -101,20 +121,22 @@ def get_numeric_reviews_by_user(user_id):  # noqa: E501
     :param user_id: The ID of the user whose reviews to retrieve
     :type user_id: int
 
-    :rtype: InlineResponse2004
+    :rtype: ReviewsResponse
     """
     result = fetch_reviews_by_user(user_id)
+
     if result['status'] == 'success' and result['data']:
         formatted_reviews = [
             {
-                "profileId": review["profile_id"],
-                "contentId": review["content_id"],
+                "profile_id": review["profile_id"],
+                "content_id": review["content_id"],
                 "rating": review["rating"],
-                "userId": review["user_id"]
+                "user_id": review["user_id"]
             }
             for review in result['data']
         ]
-        return {"reviews": formatted_reviews}, 200
+        response = ReviewsResponse(reviews=formatted_reviews)
+        return response, 200
     elif result['status'] == 'success':
         return {'message': 'No reviews found for this user'}, 404
     else:
@@ -129,9 +151,10 @@ def get_numeric_reviews_for_content(content_id):  # noqa: E501
     :param content_id: The ID of the content to retrieve reviews for
     :type content_id: int
 
-    :rtype: InlineResponse2001
+    :rtype: ReviewsResponse
     """
     result = fetch_reviews_for_content(content_id)
+
     if result['status'] == 'success' and result['data']:
         formatted_reviews = [
             {
@@ -142,9 +165,11 @@ def get_numeric_reviews_for_content(content_id):  # noqa: E501
             }
             for review in result['data']
         ]
-        return {"reviews": formatted_reviews}, 200
+        response = ReviewsResponse(reviews=formatted_reviews)
+        return response, 200
     elif result['status'] == 'success':
-        return {'message': 'No reviews found for this content'}, 404
+        response = ReviewsResponse(reviews=[])
+        return response, 404  # Devuelve una lista vacía con el código 404 para representar que no hay reseñas
     else:
         return {'error': result['error']}, 400
 
@@ -163,7 +188,7 @@ def update_numeric_review_for_content_by_user_and_profile(content_id, user_id, p
     :param profile_id: The ID of the profile whose review is being updated
     :type profile_id: int
 
-    :rtype: InlineResponse2003
+    :rtype: SuccessResponse
     """
     new_rating = body.get('rating')
 
@@ -173,9 +198,11 @@ def update_numeric_review_for_content_by_user_and_profile(content_id, user_id, p
 
     result = update_review(content_id, user_id, profile_id, new_rating)
     if result['status'] == 'success' and result['rowcount'] > 0:
-        return {'message': 'Review updated successfully'}, 200
+        response = SuccessResponse(message='Review updated successfully')
+        return response, 200
     elif result['status'] == 'success':
-        return {'message': 'No record found to update'}, 404
+        response = SuccessResponse(message='No record found to update')
+        return response, 404
     else:
         return {'error': result['error']}, 400
 
@@ -188,25 +215,24 @@ def get_content_languages(content_id):  # noqa: E501
     :param content_id: The ID of the content to retrieve languages for
     :type content_id: int
 
-    :rtype: InlineResponse2005
+    :rtype: InlineResponse2001
     """
     # Llama al endpoint que obtiene todos los detalles del contenido
     response = requests.get(f"{BASE_URL_CONTENT_API}/contents/{content_id}")
 
-    # Verifica si la respuesta es exitosa (código 200)
     if response.status_code == 200:
         try:
             # Extrae la respuesta JSON completa
             content_data = response.json()
             # Extrae solo la parte de "languages" del contenido
-            languages = content_data.get("languages", [])
+            language = content_data.get("language", [])
             # Devuelve los idiomas en la estructura esperada por InlineResponse2005
-            return InlineResponse2005.from_dict({"languages": languages}), response.status_code
+            response_model = InlineResponse2001(languages=language)
+            return response_model, response.status_code
         except ValueError:
             # Maneja el caso donde la respuesta no es JSON válido
             return {"error": "Respuesta no es JSON válida"}, 500
     else:
-        # Si el estado no es 200, devuelve un mensaje de error con el estado de respuesta
         return {"error": f"Error en el microservicio de contenido: {response.status_code}"}, response.status_code
 
 
@@ -220,7 +246,7 @@ def get_recommendations_for_user(user_id, profile_id):  # noqa: E501
     :param profile_id: The ID of the profile to retrieve recommendations for
     :type profile_id: int
 
-    :rtype: InlineResponse2006
+    :rtype: InlineResponse2002
     """
     # Paso 1: Obtener los IDs de los contenidos favoritos del perfil
     response = requests.get(f"{BASE_URL_USER_SERVER}/users/{user_id}/profiles/{profile_id}/lists/favorites")
@@ -256,7 +282,8 @@ def get_recommendations_for_user(user_id, profile_id):  # noqa: E501
             })
 
     # Paso 4: Devolver las recomendaciones en el formato esperado
-    return InlineResponse2006.from_dict({"recommendations": recommendations}), 200
+    response_model = InlineResponse2002(recommendations=recommendations)
+    return response_model, 200
 
 
 def get_content_views(content_id):  # noqa: E501
@@ -267,123 +294,195 @@ def get_content_views(content_id):  # noqa: E501
     :param content_id: The ID of the content to retrieve views for
     :type content_id: int
 
-    :rtype: InlineResponse200
+    :rtype: ViewResponse
     """
     result = fetch_view_count(content_id)
+
     if result['status'] == 'success':
         views = result['data'][0]['view_count'] if result['data'] else 0
-        return {'views': views}, 200
+        response_model = ViewResponse(views=views)
+        return response_model, 200
     else:
         return {'error': result['error']}, 400
 
 
 def add_content_view(content_id, body):
-    """
-    Maneja la solicitud POST para agregar una nueva entrada de 'views'.
+    """Add a view entry for content
 
-    Agrega una nueva entrada de 'views' asociada a un contenido específico.
+    Add a new view entry for a specific content. # noqa: E501
 
-    :param content_id: El ID del contenido para el cual agregar la entrada de 'views'.
+    :param body: Data for the new view entry
+    :type body: dict | bytes
+    :param content_id: The ID of the content
     :type content_id: int
-    :param body: El cuerpo de la solicitud que contiene los datos necesarios para agregar la entrada de 'views'.
-    :type body: dict
-    :rtype: dict, int
-    :return: Devuelve un mensaje indicando si la operación fue exitosa o si ocurrió un error.
+
+    :rtype: SuccessResponse
     """
     view_count = body.get('view_count')
 
     result = add_view(content_id, view_count)
+
     if result['status'] == 'success':
-        return {'message': 'View added successfully'}, 201
+        response_model = SuccessResponse(message='View added successfully')
+        return response_model, 200
     else:
         return {'error': result['error']}, 400
 
 
 def update_content_view(content_id, body):
-    """
-    Maneja la solicitud PUT para actualizar la cantidad de 'views'.
+    """Update view count for specific content and user
 
-    Actualiza la cantidad de 'views' asociada a un contenido específico.
+    Update the view count for a specific content by a user. # noqa: E501
 
-    :param content_id: El ID del contenido para actualizar la cantidad de 'views'.
+    :param body: Updated view count
+    :type body: dict | bytes
+    :param content_id: The ID of the content
     :type content_id: int
-    :param body: El cuerpo de la solicitud que contiene la nueva cantidad de 'views'.
-    :type body: dict
-    :rtype: dict, int
-    :return: Devuelve un mensaje indicando si la operación de actualización fue exitosa, si no se encontró ningún registro para actualizar, o si ocurrió un error.
+
+    :rtype: SuccessResponse
     """
     new_view_count = body.get('new_view_count')
     result = update_view(content_id, new_view_count)
+
     if result['status'] == 'success' and result['rowcount'] > 0:
-        return {'message': 'View count updated successfully'}, 200
+        response_model = SuccessResponse(message='View count updated successfully')
+        return response_model, 200
     elif result['status'] == 'success':
-        return {'message': 'No record found to update'}, 404
+        response_model = SuccessResponse(message='No record found to update')
+        return response_model, 404
     else:
         return {'error': result['error']}, 400
+
 
 def delete_content_view(content_id):
-    """
-    Maneja la solicitud DELETE para eliminar una entrada de 'views'.
+    """Delete view entry for content by user
 
-    Elimina una entrada de 'views' asociada a un contenido específico.
+    Delete a view entry for a specific content and user. # noqa: E501
 
-    :param content_id: El ID del contenido para el cual eliminar la entrada de 'views'.
+    :param content_id: The ID of the content
     :type content_id: int
-    :rtype: dict, int
-    :return: Devuelve un mensaje indicando si la operación de eliminación fue exitosa, si no se encontró ningún registro para eliminar, o si ocurrió un error.
+
+    :rtype: SuccessResponse
     """
     result = delete_view(int(content_id))
+
     if result['status'] == 'success' and result['rowcount'] > 0:
-        return {'message': 'View deleted successfully'}, 200
+        response_model = SuccessResponse(message='View deleted successfully')
+        return response_model, 200
     elif result['status'] == 'success':
-        return {'message': 'No record found to delete'}, 404
+        response_model = SuccessResponse(message='No record found to delete')
+        return response_model, 404
     else:
         return {'error': result['error']}, 400
 
+
 def get_continue_watching(user_id, profile_id, content_id):
-    """
-    Recupera el último minuto visto de un contenido específico.
+    """Get last watched minute for content
+
+    Retrieve the last watched minute for a specific content by a user and profile. # noqa: E501
+
+    :param user_id: The ID of the user
+    :type user_id: int
+    :param profile_id: The ID of the profile
+    :type profile_id: int
+    :param content_id: The ID of the content
+    :type content_id: int
+
+    :rtype: InlineResponse200
     """
     result = fetch_continue_watching(user_id, profile_id, content_id)
+
+    if result['status'] == 'success' and result['data']:
+        response_model = InlineResponse200(last_watched_minute=result['data'][0]['last_watched_minute'])
+        return response_model, 200
+    elif result['status'] == 'success':
+        return {'message': 'No record found'}, 404
+    else:
+        return {'error': result['error']}, 400
+
+"""
     if result['status'] == 'success' and result['data']:
         return {'last_watched_minute': result['data'][0]['last_watched_minute']}, 200
     elif result['status'] == 'success':
         return {'message': 'No record found'}, 404
     else:
         return {'error': result['error']}, 400
+"""
+
 
 def add_continue_watching(user_id, profile_id, content_id, body):
-    """
-    Agrega una nueva entrada de 'continuar viendo' para un contenido específico.
+    """Add continue watching entry
+
+    Add a new entry for a user&#x27;s last watched minute for a specific content. # noqa: E501
+
+    :param body: Data for the continue watching entry
+    :type body: dict | bytes
+    :param user_id: The ID of the user
+    :type user_id: int
+    :param profile_id: The ID of the profile
+    :type profile_id: int
+    :param content_id: The ID of the content
+    :type content_id: int
+
+    :rtype: SuccessResponse
     """
     last_watched_minute = body.get('last_watched_minute')
     result = insert_continue_watching(user_id, profile_id, content_id, last_watched_minute)
+
     if result['status'] == 'success':
-        return {'message': 'Continue watching entry created successfully'}, 201
+        response_model = SuccessResponse(message='Continue watching entry created successfully')
+        return response_model, 200
     else:
         return {'error': result['error']}, 400
 
+
 def update_continue_watching(user_id, profile_id, content_id, body):
-    """
-    Actualiza el último minuto visto de un contenido específico.
+    """Update continue watching entry
+
+    Update the last watched minute for a user&#x27;s content. # noqa: E501
+
+    :param body: Updated continue watching data
+    :type body: dict | bytes
+    :param user_id: The ID of the user
+    :type user_id: int
+    :param profile_id: The ID of the profile
+    :type profile_id: int
+    :param content_id: The ID of the content
+    :type content_id: int
+
+    :rtype: SuccessResponse
     """
     new_last_watched_minute = body.get('new_last_watched_minute')
     result = update_continue_entry(user_id, profile_id, content_id, new_last_watched_minute)
     if result['status'] == 'success' and result['rowcount'] > 0:
-        return {'message': 'Continue watching entry updated successfully'}, 200
+        response_model = SuccessResponse(message='Continue watching entry updated successfully')
+        return response_model, 200
     elif result['status'] == 'success':
-        return {'message': 'No record found to update'}, 404
+        response_model = SuccessResponse(message='No record found to update')
+        return response_model, 404
     else:
         return {'error': result['error']}, 400
 
 def delete_continue_watching(user_id, profile_id, content_id):
-    """
-    Elimina una entrada de 'continuar viendo' para un contenido específico.
+    """Delete continue watching entry
+
+    Delete a continue watching entry for a specific content by a user and profile. # noqa: E501
+
+    :param user_id: The ID of the user
+    :type user_id: int
+    :param profile_id: The ID of the profile
+    :type profile_id: int
+    :param content_id: The ID of the content
+    :type content_id: int
+
+    :rtype: SuccessResponse
     """
     result = delete_continue_entry(user_id, profile_id, content_id)
     if result['status'] == 'success' and result['rowcount'] > 0:
-        return {'message': 'Continue watching entry deleted successfully'}, 200
+        response_model = SuccessResponse(message='Continue watching entry deleted successfully')
+        return response_model, 200
     elif result['status'] == 'success':
-        return {'message': 'No record found to delete'}, 404
+        response_model = SuccessResponse(message='No record found to delete')
+        return response_model, 404
     else:
         return {'error': result['error']}, 400
