@@ -14,20 +14,20 @@ class InlineResponse2001(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, reviews: List[object]=None):  # noqa: E501
+    def __init__(self, languages: List[str]=None):  # noqa: E501
         """InlineResponse2001 - a model defined in Swagger
 
-        :param reviews: The reviews of this InlineResponse2001.  # noqa: E501
-        :type reviews: List[object]
+        :param languages: The languages of this InlineResponse2001.  # noqa: E501
+        :type languages: List[str]
         """
         self.swagger_types = {
-            'reviews': List[object]
+            'languages': List[str]
         }
 
         self.attribute_map = {
-            'reviews': 'reviews'
+            'languages': 'languages'
         }
-        self._reviews = reviews
+        self._languages = languages
 
     @classmethod
     def from_dict(cls, dikt) -> 'InlineResponse2001':
@@ -41,22 +41,22 @@ class InlineResponse2001(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def reviews(self) -> List[object]:
-        """Gets the reviews of this InlineResponse2001.
+    def languages(self) -> List[str]:
+        """Gets the languages of this InlineResponse2001.
 
 
-        :return: The reviews of this InlineResponse2001.
-        :rtype: List[object]
+        :return: The languages of this InlineResponse2001.
+        :rtype: List[str]
         """
-        return self._reviews
+        return self._languages
 
-    @reviews.setter
-    def reviews(self, reviews: List[object]):
-        """Sets the reviews of this InlineResponse2001.
+    @languages.setter
+    def languages(self, languages: List[str]):
+        """Sets the languages of this InlineResponse2001.
 
 
-        :param reviews: The reviews of this InlineResponse2001.
-        :type reviews: List[object]
+        :param languages: The languages of this InlineResponse2001.
+        :type languages: List[str]
         """
 
-        self._reviews = reviews
+        self._languages = languages
