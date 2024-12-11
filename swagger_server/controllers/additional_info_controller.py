@@ -1,9 +1,9 @@
 import connexion
 import requests
 
-from swagger_server.services.view_service import *
-from swagger_server.services.continue_watching_service import *
-from swagger_server.services.review_service import *
+from swagger_server.services.view_service import fetch_view_count, add_view, update_view, delete_view
+from swagger_server.services.continue_watching_service import fetch_continue_watching, insert_continue_watching, update_continue_entry, delete_continue_entry
+from swagger_server.services.review_service import insert_review, delete_review, update_review, fetch_review, fetch_reviews_by_user, fetch_reviews_for_content
 from swagger_server.models.continuewatching_content_id_body import ContinuewatchingContentIdBody  # noqa: E501
 from swagger_server.models.continuewatching_content_id_body1 import ContinuewatchingContentIdBody1  # noqa: E501
 from swagger_server.models.inline_response200 import InlineResponse200  # noqa: E501
