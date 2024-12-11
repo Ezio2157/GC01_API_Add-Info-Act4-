@@ -400,15 +400,6 @@ def get_continue_watching(user_id, profile_id, content_id):
     else:
         return {'error': result['error']}, 400
 
-"""
-    if result['status'] == 'success' and result['data']:
-        return {'last_watched_minute': result['data'][0]['last_watched_minute']}, 200
-    elif result['status'] == 'success':
-        return {'message': 'No record found'}, 404
-    else:
-        return {'error': result['error']}, 400
-"""
-
 
 def add_continue_watching(user_id, profile_id, content_id, body):
     """Add continue watching entry
