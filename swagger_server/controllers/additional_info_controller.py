@@ -24,6 +24,9 @@ from swagger_server import util
 BASE_URL_USER_SERVER = "http://localhost:8082/v1"
 BASE_URL_CONTENT_API = "http://localhost:8081/v1"
 
+DELETE_MESSAGE = 'No record found to delete'
+UPDATE_MESSAGE = 'No record found to update'
+
 def add_numeric_review_for_content(content_id, user_id, profile_id, body):  # noqa: E501
     """Add a numeric review for content
 
@@ -76,7 +79,7 @@ def delete_numeric_review_for_content(content_id, user_id, profile_id):  # noqa:
         response = SuccessResponse(message='Review deleted successfully')
         return response, 200
     elif result['status'] == 'success':
-        response = SuccessResponse(message='No record found to delete')
+        response = SuccessResponse(message=DELETE_MESSAGE)
         return response, 404
     else:
         return {'error': result['error']}, 400
@@ -201,7 +204,7 @@ def update_numeric_review_for_content_by_user_and_profile(content_id, user_id, p
         response = SuccessResponse(message='Review updated successfully')
         return response, 200
     elif result['status'] == 'success':
-        response = SuccessResponse(message='No record found to update')
+        response = SuccessResponse(message=UPDATE_MESSAGE)
         return response, 404
     else:
         return {'error': result['error']}, 400
@@ -348,7 +351,7 @@ def update_content_view(content_id, body):
         response_model = SuccessResponse(message='View count updated successfully')
         return response_model, 200
     elif result['status'] == 'success':
-        response_model = SuccessResponse(message='No record found to update')
+        response_model = SuccessResponse(message=UPDATE_MESSAGE)
         return response_model, 404
     else:
         return {'error': result['error']}, 400
@@ -370,7 +373,7 @@ def delete_content_view(content_id):
         response_model = SuccessResponse(message='View deleted successfully')
         return response_model, 200
     elif result['status'] == 'success':
-        response_model = SuccessResponse(message='No record found to delete')
+        response_model = SuccessResponse(message=DELETE_MESSAGE)
         return response_model, 404
     else:
         return {'error': result['error']}, 400
@@ -449,7 +452,7 @@ def update_continue_watching(user_id, profile_id, content_id, body):
         response_model = SuccessResponse(message='Continue watching entry updated successfully')
         return response_model, 200
     elif result['status'] == 'success':
-        response_model = SuccessResponse(message='No record found to update')
+        response_model = SuccessResponse(message=UPDATE_MESSAGE)
         return response_model, 404
     else:
         return {'error': result['error']}, 400
@@ -473,7 +476,7 @@ def delete_continue_watching(user_id, profile_id, content_id):
         response_model = SuccessResponse(message='Continue watching entry deleted successfully')
         return response_model, 200
     elif result['status'] == 'success':
-        response_model = SuccessResponse(message='No record found to delete')
+        response_model = SuccessResponse(message=DELETE_MESSAGE)
         return response_model, 404
     else:
         return {'error': result['error']}, 400
